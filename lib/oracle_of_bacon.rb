@@ -20,30 +20,34 @@ class OracleOfBacon
   validate :from_does_not_equal_to
 
   def from_does_not_equal_to
-    # YOUR CODE HERE
+    if @from == @to
+      errors.add(:from, 'From cannot equal to!')
+    end
   end
 
   def initialize(api_key='')
-    # your code here
+    @api_key = api_key
+    @to = 'Kevin Bacon'
+    @from = 'Kevin Bacon'
   end
 
   def find_connections
     make_uri_from_arguments
     begin
       xml = URI.parse(uri).read
+      @response = Response.new(xml)
     rescue Timeout::Error, Errno::EINVAL, Errno::ECONNRESET, EOFError,
       Net::HTTPBadResponse, Net::HTTPHeaderSyntaxError,
       Net::ProtocolError => e
       # convert all of these into a generic OracleOfBacon::NetworkError,
       #  but keep the original error message
-      # your code here
+      raise NetworkError.new(e.message)
     end
-    # your code here: create the OracleOfBacon::Response object
   end
 
   def make_uri_from_arguments
-    # your code here: set the @uri attribute to properly-escaped URI
-    #   constructed from the @from, @to, @api_key arguments
+    @uri = "http://oracleofbacon.org/cgi-bin/xml?p=#{@api_key}&a=#{CGI.escape(@from)}&b=#{CGI.escape(@to)}"
+    puts @uri
   end
       
   class Response
@@ -59,14 +63,29 @@ class OracleOfBacon
     def parse_response
       if ! @doc.xpath('/error').empty?
         parse_error_response
-      # your code here: 'elsif' clauses to handle other responses
-      # for responses not matching the 3 basic types, the Response
-      # object should have type 'unknown' and data 'unknown response'         
+      elsif ! @doc.xpath('/spellcheck').empty?
+        parse_spellcheck_response
+      elsif ! @doc.xpath('/link').empty?
+        parse_graph_response
+      else
+        parse_unknown_response
       end
     end
     def parse_error_response
       @type = :error
       @data = 'Unauthorized access'
+    end
+    def parse_spellcheck_response
+      @type = :spellcheck
+      @data = @doc.xpath('//match').collect { |x| x.content }
+    end
+    def parse_graph_response
+      @type = :graph
+      @data = @doc.xpath('/link/*').collect { |x| x.content }
+    end
+    def parse_unknown_response
+      @type = :unknown
+      @data = 'unknown response'
     end
   end
 end

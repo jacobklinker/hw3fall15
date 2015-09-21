@@ -46,8 +46,7 @@ class OracleOfBacon
   end
 
   def make_uri_from_arguments
-    @uri = "http://oracleofbacon.org/cgi-bin/xml?p=#{@api_key}&a=#{CGI.escape(@from)}&b=#{CGI.escape(@to)}"
-    puts @uri
+    @uri = "http://oracleofbacon.org/cgi-bin/xml?p=#{@api_key}&a=#{CGI.escape(@to)}&b=#{CGI.escape(@from)}"
   end
       
   class Response

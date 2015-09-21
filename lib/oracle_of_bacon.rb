@@ -21,7 +21,7 @@ class OracleOfBacon
 
   def from_does_not_equal_to
     if @from == @to
-      errors.add(:from, 'From cannot equal to!')
+      self.errors.add(:from, 'cannot be the same as To')
     end
   end
 
